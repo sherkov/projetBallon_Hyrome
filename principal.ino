@@ -14,16 +14,16 @@
 
 RTC_PCF8523 rtc;//heure carte SD
 
-long derniereRecupTemps;//timer dylan
-long difference;//timer dylan
- int intervalle= 600;//timer dylan
+long derniereRecupTemps;//timer 
+long difference;//timer
+ int intervalle= 600;//timer
 
 
 unsigned char ret = 0;//barometre
 
 //partie capteur oxygene
 const float VRefer = 3.3;       // Alimentation du capteur 
-const int pinAdc   = A1;        //capteur oxygene
+const int pinAdc   = A1;        //Branchement du capteur
 
 
 
@@ -55,13 +55,6 @@ void setup()
       }
       Serial.println("card initialized.");
 
-      
-
-
-
-
-      
-
      //verification heure de la carte SD
         if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
@@ -69,13 +62,9 @@ void setup()
 
       HP20x.begin();//barometre
       delay(100);//barometre
-
-    
-
+                          }
+  
  
- }
-  
-  
 }
 
 
@@ -100,34 +89,27 @@ void loop()
 
     //capteur UV
     for(int i=0;i<1024;i++)
-   {  
-      sensorValue=analogRead(A2);
-      sum=sensorValue+sum;
-      delay(2);
-   }   
-    uvindex = (307*(sum*4980.0/1023.0))/200; // This would be the equivalent UVIndex
+     {  
+        sensorValue=analogRead(A2);
+        sum=sensorValue+sum;
+        delay(2);
+     }   
+     
+      uvindex = (307*(sum*4980.0/1023.0))/200; // This would be the equivalent UVIndex
 
 
 
 
-                        //début timer
+                 //début timer
                 difference = now.unixtime()-derniereRecupTemps;
     
             if(difference>intervalle)
-    {
-        Serial.print("entrée dans la boucle\n");
-         ecritureFichier();
-      
-      
-        derniereRecupTemps=now.unixtime();
-    }
-
+              {
+                  Serial.print("entrée dans la boucle\n");
+                  ecritureFichier();
+                  derniereRecupTemps=now.unixtime();
+              }
                 //fin timer
-
-
-
-
-
                 
                     String heure_p;
                     String minute_p;
@@ -163,7 +145,7 @@ void loop()
                     }
 
                 
-
+        //Début affichage dans moniteur série
         Serial.print(heure_p);
         Serial.print(':');
         Serial.print(minute_p);
@@ -183,6 +165,7 @@ void loop()
         Serial.print(uvindex);
         Serial.print("\n");
 
+        //Début écrite fichier
         dataFile.print(heure_p);
         dataFile.print(':');
         dataFile.print(minute_p);
@@ -202,10 +185,11 @@ void loop()
         dataFile.print(uvindex);
         dataFile.print("\n");
 
-      
         dataFile.flush();
 
-        digitalWrite(4, HIGH);  
+
+        //Bip court a chaque écriture de mesure
+        digitalWrite(4, HIGH);
 
         delay(50);
 
@@ -250,15 +234,17 @@ float readConcentration() //lecture de la concentration d'oxygene en pourcentage
 //fin lecture oxygene
 
 
-void ecritureFichier()
+void ecritureFichier()//écriture du fichier csv, avec comme nom l'heure actuelle au format HH:MM:SS
 {
     DateTime now = rtc.now();
+
 
 
     String heure_p;
     String minute_p;
     String seconde_p;
 
+      //Verification si le temps relevé est inférieur a 10 -> dans ce cas on ajoute un 0 devant le nombre pour toujours avoir 6 chiffres dans le nom du fichier
     if(now.hour() < 10)
     {
       heure_p = "0" + (String)now.hour();
@@ -290,11 +276,13 @@ void ecritureFichier()
 
     String filename = heure_p + minute_p + seconde_p + ".csv" ;
 
+
     Serial.println(filename);
 
     dataFile.close();
+    
   
-  dataFile = SD.open(filename, FILE_WRITE);//Ouverture du fichier, écriture si inexistant
+    dataFile = SD.open(filename, FILE_WRITE);//Ouverture du fichier, écriture si inexistant
       if (! dataFile) {
         Serial.println("erreur d'ouverture du fichier");
         // Attente tant que on ne peut pas ouvrir le fichier
@@ -303,7 +291,7 @@ void ecritureFichier()
 
 
       
-
+          //bip a la fin de la création d'un fichier
           digitalWrite(4, HIGH);
           delay(analogRead(3));
 
@@ -312,9 +300,9 @@ void ecritureFichier()
           digitalWrite(4, LOW);
           delay(analogRead(0));
 
-      Serial.println("écriture du fichier réussie");
+      Serial.println("écriture du fichier réussie");//Ecriture sur moniteur série
 
-      dataFile.print("Heure;Temperature_int(degres);Temperature_ext(degres);humidite_ext(pourcentage);Pression(hPa);Oxygene(pourcentage);Uv(index)\n"); 
+      dataFile.print("Heure;Temperature_int(degres);Temperature_ext(degres);humidite_ext(pourcentage);Pression(hPa);Oxygene(pourcentage);Uv(index)\n");//Ecriture de la première ligne du fichier pour le format des mesures 
       dataFile.flush();
 }
 
