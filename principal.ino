@@ -305,6 +305,3 @@ void ecritureFichier()//écriture du fichier csv, avec comme nom l'heure actuell
       dataFile.print("Heure;Temperature_int(degres);Temperature_ext(degres);humidite_ext(pourcentage);Pression(hPa);Oxygene(pourcentage);Uv(index)\n");//Ecriture de la première ligne du fichier pour le format des mesures 
       dataFile.flush();
 }
-
-
-
